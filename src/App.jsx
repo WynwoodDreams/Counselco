@@ -3947,7 +3947,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
     return (
       <button
         onClick={() => onNavigate(t.key)}
-        className="tile-backlit"
+        className={`tile-backlit responsive-tile${featured ? " responsive-featured-tile" : ""}`}
         style={{
           position: "relative",
           textAlign: "left",
@@ -4087,7 +4087,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
       {/* Hero — full-bleed cinematic intro */}
       <motion.section
         ref={heroRef}
-        className="noise-overlay"
+        className="noise-overlay responsive-hero"
         style={{
           position: "relative",
           // Break out of the page max-width container into full viewport width
@@ -4176,8 +4176,9 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             pointerEvents: "none",
           }}
         >
-          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px" }}>
+          <div className="responsive-live-chip-wrap" style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px" }}>
             <motion.div
+              className="responsive-live-chip"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
@@ -4223,6 +4224,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             Tailwind classes are present in this codebase but no Tailwind is
             configured, so the maxWidth + auto margins are set inline. */}
         <motion.div
+          className="responsive-hero-inner"
           style={{
             position: "relative",
             zIndex: 1,
@@ -4234,13 +4236,13 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             willChange: "transform",
           }}
         >
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 32, alignItems: "end" }}>
+        <div className="responsive-hero-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 32, alignItems: "end" }}>
           <div>
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
               <SectionLabel>Counsel·Co</SectionLabel>
             </motion.div>
             <motion.h1
-              className="fr"
+              className="fr responsive-hero-headline"
               style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginTop: 8, marginBottom: 20, letterSpacing: "-0.02em", textShadow: `0 1px 0 ${DS.bg}, 0 0 12px ${DS.bg}80` }}
               initial="hidden"
               animate="visible"
@@ -4268,6 +4270,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
               ))}
             </motion.h1>
             <motion.p
+              className="responsive-hero-copy"
               style={{ fontSize: 16, color: DS.inkMuted, lineHeight: 1.6, maxWidth: 560 }}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -4277,6 +4280,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             </motion.p>
           </div>
           <motion.div
+            className="responsive-stats-grid"
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
             initial="hidden"
             animate="visible"
@@ -4288,13 +4292,14 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             {heroStats.map((s, i) => (
               <motion.div
                 key={i}
+                className="responsive-stat-card"
                 style={{ padding: "14px 16px", background: `${DS.surface2}f0`, backdropFilter: "blur(8px)", border: `1px solid ${DS.border}`, borderRadius: 6 }}
                 variants={{
                   hidden: { opacity: 0, y: 12 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
                 }}
               >
-                <div className="fr" style={{ fontSize: 28, fontWeight: 500, lineHeight: 1, color: DS.ink }}>{s.v}</div>
+                <div className="fr responsive-stat-numeral" style={{ fontSize: 28, fontWeight: 500, lineHeight: 1, color: DS.ink }}>{s.v}</div>
                 <div className="mono" style={{ fontSize: 10, color: DS.inkFaint, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 6 }}>{s.l}</div>
               </motion.div>
             ))}
@@ -4333,6 +4338,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
 
       {/* Module tiles — featured + 2x2 grid, viewport-triggered entrance */}
       <motion.div
+        className="responsive-tiles-grid"
         style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr)", gap: 16, marginBottom: 56 }}
         initial="hidden"
         whileInView="visible"
@@ -4353,6 +4359,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           </motion.div>
         )}
         <motion.div
+          className="responsive-tiles-secondary"
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
           variants={{
             hidden: {},
@@ -4617,6 +4624,68 @@ export default function CounselCo() {
         .tile-backlit {
           background-image: linear-gradient(180deg, #FFFFFF 0%, ${DS.surface} 100%);
         }
+
+        /* ─── Responsive: tablet (≤1024px) ─────────────────────────────────
+           Featured-plus-2x2 tile grid collapses to a 2-up grid; nav labels
+           hide so 6 module icons fit in the header beside the wordmark. */
+        @media (max-width: 1024px) {
+          .responsive-header-row { padding: 12px 20px !important; }
+          .responsive-nav { gap: 0 !important; }
+          .responsive-nav-label { display: none !important; }
+          .responsive-nav button { padding: 10px 10px !important; }
+          .responsive-tiles-grid {
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
+          }
+          .responsive-tiles-secondary {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 14px !important;
+          }
+          .responsive-featured-tile { min-height: 220px !important; padding: 24px !important; }
+          .responsive-featured-tile h3 { font-size: 30px !important; }
+        }
+
+        /* ─── Responsive: phone (≤720px) ──────────────────────────────────
+           Hero stacks vertically (text above stats), headline and stat
+           numerals shrink, padding tightens, tile grid goes 1-up. */
+        @media (max-width: 720px) {
+          .responsive-main { padding: 24px 16px 60px !important; }
+          .responsive-header-row { padding: 10px 14px !important; flex-wrap: wrap; gap: 8px; }
+          .responsive-wordmark-tagline { display: none !important; }
+          .responsive-hero {
+            min-height: 70vh !important;
+            margin-top: -24px !important;
+          }
+          .responsive-hero-inner { padding: 0 16px !important; }
+          .responsive-hero-grid {
+            grid-template-columns: 1fr !important;
+            gap: 28px !important;
+            align-items: start !important;
+          }
+          .responsive-hero-headline { font-size: 36px !important; }
+          .responsive-hero-copy { font-size: 14px !important; }
+          .responsive-stats-grid { gap: 10px !important; }
+          .responsive-stat-card { padding: 12px 14px !important; }
+          .responsive-stat-numeral { font-size: 22px !important; }
+          .responsive-live-chip-wrap { padding: 0 16px !important; top: 16px !important; }
+          .responsive-live-chip { font-size: 9px !important; }
+          .responsive-tiles-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .responsive-tiles-secondary {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .responsive-tile { min-height: 160px !important; padding: 18px !important; }
+          .responsive-featured-tile h3 { font-size: 26px !important; }
+        }
+
+        /* ─── Responsive: very narrow (≤380px) ─────────────────────────── */
+        @media (max-width: 380px) {
+          .responsive-hero-headline { font-size: 30px !important; }
+          .responsive-stats-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       {/* Header */}
@@ -4630,7 +4699,7 @@ export default function CounselCo() {
           zIndex: 10,
         }}
       >
-        <div className="max-w-7xl mx-auto px-6" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px" }}>
+        <div className="max-w-7xl mx-auto px-6 responsive-header-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px", maxWidth: 1280, margin: "0 auto" }}>
           <button
             onClick={() => setRoute("home")}
             style={{ display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}
@@ -4663,14 +4732,14 @@ export default function CounselCo() {
               >
                 COUNSEL<span style={{ color: currentAccent }}>·</span>CO
               </div>
-              <div className="mono" style={{ fontSize: 9, color: DS.inkFaint, marginTop: 4, letterSpacing: "0.14em" }}>
+              <div className="mono responsive-wordmark-tagline" style={{ fontSize: 9, color: DS.inkFaint, marginTop: 4, letterSpacing: "0.14em" }}>
                 AI GOVERNANCE · LAW FIRMS
               </div>
             </div>
           </button>
 
           {/* Nav */}
-          <nav style={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <nav className="responsive-nav" style={{ display: "flex", gap: 2, alignItems: "center" }}>
             {Object.entries(MODULES).filter(([k]) => k !== "home").map(([key, m]) => {
               const active = route === key;
               const Icon = m.icon;
@@ -4696,8 +4765,8 @@ export default function CounselCo() {
                     transition: "color 120ms ease",
                   }}
                 >
-                  <Icon size={13} strokeWidth={1.75} style={{ color: active ? m.accent : DS.inkFaint }} />
-                  {m.label}
+                  <Icon size={15} strokeWidth={1.75} style={{ color: active ? m.accent : DS.inkFaint }} />
+                  <span className="responsive-nav-label">{m.label}</span>
                   {showBadge && (
                     <span className="mono" style={{ fontSize: 10, padding: "1px 5px", background: active ? m.accent : DS.borderStrong, color: active ? DS.bg : DS.ink, borderRadius: 3 }}>
                       {events.length}
@@ -4714,7 +4783,7 @@ export default function CounselCo() {
       </header>
 
       {/* Main */}
-      <main className="max-w-7xl mx-auto px-6" style={{ padding: "40px 24px 80px" }}>
+      <main className="max-w-7xl mx-auto px-6 responsive-main" style={{ padding: "40px 24px 80px", maxWidth: 1280, margin: "0 auto" }}>
         {!hydrated ? (
           <Loader label="Loading workspace" />
         ) : route === "home" ? (
