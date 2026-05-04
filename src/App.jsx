@@ -32,25 +32,26 @@ import {
 
 /* ─────────────────────────────────────────────────────────────────────────
    DESIGN SYSTEM
-   Cream + charcoal base. Per-module accent. Editorial legal aesthetic.
+   Felt-navy base. Slate/lavender accents. Acoustic-panel aesthetic.
    ───────────────────────────────────────────────────────────────────────── */
 
 const DS = {
-  bg: "#f5f1e8",
-  surface: "#fbf7ef",
-  surface2: "#ffffff",
-  ink: "#1c1917",
-  inkMuted: "#57534e",
-  inkFaint: "#78716c",
-  border: "#e7e0d3",
-  borderStrong: "#d6cfc1",
+  bg: "#EDEEF2",
+  surface: "#F5F6FA",
+  surface2: "#FFFFFF",
+  ink: "#0F1422",
+  inkMuted: "#3E4A66",
+  inkFaint: "#8B95AB",
+  border: "#D8DCE6",
+  borderStrong: "#B6BECF",
+  highlight: "#C9C5DA",
   // Module accents
   redline: "#7c2d12",
   policy: "#14532d",
-  vendor: "#1e3a5f",
+  vendor: "#2A3A5C",
   research: "#134e4a",
   verify: "#581c87",
-  ledger: "#1c1917",
+  ledger: "#0F1422",
   // Semantic
   success: "#065f46",
   warning: "#b45309",
@@ -928,6 +929,7 @@ const VERIFY_SAMPLES = [
 function Btn({ children, variant = "primary", icon: Icon, accent, ...rest }) {
   const styles = {
     primary: { bg: DS.ink, color: DS.bg, border: DS.ink },
+    secondary: { bg: DS.surface2, color: DS.ink, border: DS.borderStrong },
     ghost: { bg: "transparent", color: DS.ink, border: DS.borderStrong },
     accent: { bg: accent || DS.ink, color: DS.bg, border: accent || DS.ink },
     subtle: { bg: DS.surface, color: DS.ink, border: DS.borderStrong },
@@ -938,15 +940,15 @@ function Btn({ children, variant = "primary", icon: Icon, accent, ...rest }) {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 6,
-        padding: "8px 14px",
+        gap: 7,
+        padding: "10px 16px",
         fontSize: 13,
         fontFamily: "inherit",
         fontWeight: 500,
         background: styles.bg,
         color: styles.color,
         border: `1px solid ${styles.border}`,
-        borderRadius: 2,
+        borderRadius: 6,
         cursor: rest.disabled ? "not-allowed" : "pointer",
         opacity: rest.disabled ? 0.5 : 1,
         transition: "all 0.15s",
@@ -967,10 +969,10 @@ function Pill({ children, color, bg }) {
         display: "inline-block",
         fontSize: 10,
         letterSpacing: "0.05em",
-        padding: "2px 7px",
+        padding: "2px 8px",
         background: bg || color + "18",
         color: color,
-        borderRadius: 2,
+        borderRadius: 4,
         fontWeight: 600,
         textTransform: "uppercase",
       }}
@@ -1667,7 +1669,7 @@ ${docText}`);
                             fontSize: 12,
                             padding: 10,
                             marginBottom: 10,
-                            background: st.status === "rejected" ? "transparent" : "#fff8e8",
+                            background: st.status === "rejected" ? "transparent" : "#EFEDF5",
                             color: st.status === "rejected" ? DS.inkFaint : DS.ink,
                             textDecoration: st.status === "rejected" ? "line-through" : "none",
                             lineHeight: 1.5,
@@ -4059,6 +4061,11 @@ export default function CounselCo() {
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
         .fr { font-family: 'Fraunces', Georgia, serif; font-feature-settings: "ss01"; letter-spacing: -0.01em; }
         .mono { font-family: 'IBM Plex Mono', monospace; }
+        body {
+          background-color: ${DS.bg};
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='84' height='96' viewBox='0 0 84 96'><g fill='none' stroke='%230F1422' stroke-opacity='0.04' stroke-width='1'><polygon points='42,2 80,24 80,72 42,94 4,72 4,24'/><polygon points='0,48 14,40 14,56'/><polygon points='84,48 70,40 70,56'/></g></svg>");
+          background-size: 168px 192px;
+        }
         button:focus-visible, textarea:focus-visible, input:focus-visible {
           outline: 2px solid ${currentAccent};
           outline-offset: 2px;
@@ -4077,7 +4084,7 @@ export default function CounselCo() {
       <header
         style={{
           borderBottom: `1px solid ${DS.border}`,
-          background: "rgba(245,241,232,0.92)",
+          background: "rgba(237,238,242,0.88)",
           backdropFilter: "blur(8px)",
           position: "sticky",
           top: 0,
@@ -4103,7 +4110,7 @@ export default function CounselCo() {
           </button>
 
           {/* Nav */}
-          <nav style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          <nav style={{ display: "flex", gap: 2, alignItems: "center" }}>
             {Object.entries(MODULES).filter(([k]) => k !== "home").map(([key, m]) => {
               const active = route === key;
               const Icon = m.icon;
@@ -4113,26 +4120,31 @@ export default function CounselCo() {
                   key={key}
                   onClick={() => setRoute(key)}
                   style={{
+                    position: "relative",
                     display: "flex",
                     alignItems: "center",
-                    gap: 6,
-                    padding: "8px 12px",
+                    gap: 7,
+                    padding: "10px 14px",
                     fontSize: 13,
                     fontFamily: "inherit",
-                    fontWeight: 500,
-                    background: active ? DS.ink : "transparent",
-                    color: active ? DS.bg : DS.ink,
-                    border: `1px solid ${active ? DS.ink : "transparent"}`,
-                    borderRadius: 2,
+                    fontWeight: active ? 600 : 500,
+                    background: "transparent",
+                    color: active ? DS.ink : DS.inkMuted,
+                    border: "1px solid transparent",
+                    borderRadius: 6,
                     cursor: "pointer",
+                    transition: "color 120ms ease",
                   }}
                 >
-                  <Icon size={13} strokeWidth={1.75} style={{ color: active ? DS.bg : m.accent }} />
+                  <Icon size={13} strokeWidth={1.75} style={{ color: active ? m.accent : DS.inkFaint }} />
                   {m.label}
                   {showBadge && (
-                    <span className="mono" style={{ fontSize: 10, padding: "1px 5px", background: active ? DS.bg : DS.ink, color: active ? DS.ink : DS.bg, borderRadius: 2 }}>
+                    <span className="mono" style={{ fontSize: 10, padding: "1px 5px", background: active ? m.accent : DS.borderStrong, color: active ? DS.bg : DS.ink, borderRadius: 3 }}>
                       {events.length}
                     </span>
+                  )}
+                  {active && (
+                    <span style={{ position: "absolute", left: 14, right: 14, bottom: 2, height: 2, background: m.accent, borderRadius: 2 }} />
                   )}
                 </button>
               );
