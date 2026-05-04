@@ -4052,30 +4052,34 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
 
   return (
     <div>
-      {/* Hero — ambient backdrop + editorial headline left, system stats right */}
+      {/* Hero — full-bleed cinematic intro */}
       <motion.section
         ref={heroRef}
         className="noise-overlay"
         style={{
           position: "relative",
-          marginBottom: 56,
-          paddingBottom: 40,
-          borderBottom: `1px solid ${DS.border}`,
+          // Break out of the page max-width container into full viewport width
+          width: "100vw",
+          marginLeft: "calc(50% - 50vw)",
+          marginRight: "calc(50% - 50vw)",
+          marginTop: -40, // pull up to meet the header (cancels main's 40px top padding)
+          marginBottom: 64,
+          minHeight: "78vh",
+          display: "flex",
+          alignItems: "flex-end",
           opacity: heroOpacity,
           y: heroY,
           willChange: "opacity, transform",
+          overflow: "hidden",
         }}
       >
-        {/* Ambient backdrop: video if URL present, else CSS gradient mesh */}
+        {/* Full-bleed video / ambient backdrop */}
         <div
           aria-hidden
           style={{
             position: "absolute",
-            inset: "-24px -32px",
-            zIndex: -1,
-            borderRadius: 16,
-            overflow: "hidden",
-            border: `1px solid ${DS.border}`,
+            inset: 0,
+            zIndex: 0,
           }}
         >
           {HERO_VIDEO_URL && !videoFailed ? (
@@ -4086,30 +4090,43 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
               playsInline
               preload="auto"
               onError={() => setVideoFailed(true)}
-              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.6 }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 1 }}
               src={HERO_VIDEO_URL}
             />
           ) : (
             <div className="hero-ambient" style={{ width: "100%", height: "100%" }} />
           )}
-          {/* Cream/navy wash so text always wins */}
+          {/* Directional wash: heavy cream on the left (headline backdrop),
+              fading to transparent on the right (video breathes through). */}
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: `linear-gradient(120deg, ${DS.bg}f2 0%, ${DS.bg}cc 55%, ${DS.surface}d9 100%)`,
+              background: `linear-gradient(95deg, ${DS.bg}f2 0%, ${DS.bg}d9 30%, ${DS.bg}80 58%, ${DS.bg}26 100%)`,
+            }}
+          />
+          {/* Top/bottom vignette: top fades from header, bottom fades into page bg
+              so the hero hands off cleanly to the rest of the content. */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(180deg, ${DS.bg}99 0%, transparent 18%, transparent 70%, ${DS.bg} 100%)`,
+              pointerEvents: "none",
             }}
           />
         </div>
 
-        <div style={{ position: "relative", display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 48, alignItems: "end", padding: "8px 0" }}>
+        {/* Inner content — re-constrained to page max-width */}
+        <div className="max-w-7xl mx-auto px-6" style={{ position: "relative", zIndex: 1, width: "100%", padding: "0 24px 56px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 48, alignItems: "end" }}>
           <div>
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
               <SectionLabel>Counsel·Co</SectionLabel>
             </motion.div>
             <motion.h1
               className="fr"
-              style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginTop: 8, marginBottom: 20, letterSpacing: "-0.02em" }}
+              style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginTop: 8, marginBottom: 20, letterSpacing: "-0.02em", textShadow: `0 1px 0 ${DS.bg}, 0 0 12px ${DS.bg}80` }}
               initial="hidden"
               animate="visible"
               variants={{
@@ -4156,7 +4173,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             {heroStats.map((s, i) => (
               <motion.div
                 key={i}
-                style={{ padding: "14px 16px", background: `${DS.surface2}d9`, backdropFilter: "blur(4px)", border: `1px solid ${DS.border}`, borderRadius: 6 }}
+                style={{ padding: "14px 16px", background: `${DS.surface2}f0`, backdropFilter: "blur(8px)", border: `1px solid ${DS.border}`, borderRadius: 6 }}
                 variants={{
                   hidden: { opacity: 0, y: 12 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
@@ -4167,6 +4184,33 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
               </motion.div>
             ))}
           </motion.div>
+        </div>
+        {/* Scroll affordance */}
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 1.6 }}
+          style={{
+            position: "absolute",
+            bottom: 18,
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <span className="mono" style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: DS.inkFaint }}>
+            Scroll
+          </span>
+          <motion.span
+            animate={{ y: [0, 5, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            style={{ width: 1, height: 18, background: DS.inkFaint }}
+          />
+        </motion.div>
         </div>
       </motion.section>
 
