@@ -3889,20 +3889,23 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
   const tiles = [
     {
       key: "redline",
+      step: "01",
       title: "Redline",
-      subtitle: "Contract review with audit",
-      body: "Paste a contract. AI surfaces risks and suggests redlines. Every accept, edit, reject is logged.",
+      subtitle: "Contract review",
+      body: "Paste a contract. AI surfaces risks and suggests redlines.",
+      bullets: ["Severity-scored risks", "Inline rationale per change", "Accept · edit · reject all logged"],
       accent: DS.redline,
       icon: MODULES.redline.icon,
       stat: counts.redline || 0,
       statLabel: "decisions",
-      featured: true,
     },
     {
       key: "policy",
+      step: "02",
       title: "Policy",
-      subtitle: "AI use policy generator",
-      body: "Parameterize by firm size, practice mix, jurisdiction, risk tolerance. Edit sections inline; every change snapshots.",
+      subtitle: "AI use policy",
+      body: "Parameterize by firm size, practice mix, jurisdiction.",
+      bullets: ["Firm-shaped templates", "Section-level inline edits", "Snapshot on every change"],
       accent: DS.policy,
       icon: MODULES.policy.icon,
       stat: savedPolicies.length,
@@ -3910,9 +3913,11 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
     },
     {
       key: "vendor",
+      step: "03",
       title: "Vendor",
-      subtitle: "AI vendor TOS diligence",
-      body: "Score vendor terms by category. Cite clauses. Approve, negotiate, or block — rationale captured.",
+      subtitle: "TOS diligence",
+      body: "Score vendor terms by category. Cite clauses. Approve, negotiate, or block.",
+      bullets: ["Per-category scorecards", "Clause-level citations", "Decision + rationale captured"],
       accent: DS.vendor,
       icon: MODULES.vendor.icon,
       stat: savedVendors.length,
@@ -3920,9 +3925,11 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
     },
     {
       key: "research",
+      step: "04",
       title: "Research",
-      subtitle: "Arbitration corpus search",
-      body: "Natural-language query over arbitration awards. BM25 retrieval, calibrated confidence — no bluffing when the corpus is thin.",
+      subtitle: "Arbitration corpus",
+      body: "Natural-language query over awards. BM25 retrieval with calibrated confidence.",
+      bullets: ["Cited, traceable answers", "Confidence calibration", "No bluffing on thin corpus"],
       accent: DS.research,
       icon: MODULES.research.icon,
       stat: counts.research || 0,
@@ -3930,9 +3937,11 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
     },
     {
       key: "verify",
+      step: "05",
       title: "Verify",
       subtitle: "Citation validation",
-      body: "Validates every citation against the corpus. Flags fabrication AND distorted holdings — cases cited but materially misstated.",
+      body: "Validate every citation against the corpus. Flag fabrication and distortion.",
+      bullets: ["Detects invented cases", "Detects distorted holdings", "Per-citation evidence trail"],
       accent: DS.verify,
       icon: MODULES.verify.icon,
       stat: counts.verify || 0,
@@ -3942,16 +3951,30 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
 
   const HEX_CLIP = "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)";
 
-  const Tile = ({ t, featured }) => {
+  const Tile = ({ t }) => {
     const Icon = t.icon;
+    const restShadow = `
+      inset 0 1px 0 rgba(255,255,255,0.9),
+      0 0 0 1px ${DS.border},
+      0 8px 24px ${t.accent}1f,
+      0 24px 60px ${t.accent}14,
+      0 4px 12px rgba(15,20,34,0.05)
+    `;
+    const hoverShadow = `
+      inset 0 1px 0 rgba(255,255,255,0.95),
+      0 0 0 1px ${t.accent}66,
+      0 0 80px ${t.accent}40,
+      0 16px 48px ${t.accent}33,
+      0 8px 20px rgba(15,20,34,0.08)
+    `;
     return (
       <button
         onClick={() => onNavigate(t.key)}
-        className={`tile-backlit responsive-tile${featured ? " responsive-featured-tile" : ""}`}
+        className="tile-backlit responsive-tile"
         style={{
           position: "relative",
           textAlign: "left",
-          padding: featured ? 32 : 22,
+          padding: 22,
           background: `linear-gradient(180deg, #FFFFFF 0%, ${DS.surface} 100%)`,
           border: `1px solid ${DS.border}`,
           borderLeft: `4px solid ${t.accent}`,
@@ -3960,48 +3983,31 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           fontFamily: "inherit",
           transition: "transform 0.25s ease, box-shadow 0.3s ease, border-color 0.2s ease",
           overflow: "hidden",
-          minHeight: featured ? 280 : 200,
+          minHeight: 320,
           display: "flex",
           flexDirection: "column",
           width: "100%",
           flex: 1,
-          // Resting backlit halo — accent-colored ambient glow + soft drop shadow
-          boxShadow: `
-            inset 0 1px 0 rgba(255,255,255,0.9),
-            0 0 0 1px ${DS.border},
-            0 8px 24px ${t.accent}1f,
-            0 24px 60px ${t.accent}14,
-            0 4px 12px rgba(15,20,34,0.05)
-          `,
+          scrollSnapAlign: "start",
+          boxShadow: restShadow,
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "translateY(-3px)";
-          e.currentTarget.style.boxShadow = `
-            inset 0 1px 0 rgba(255,255,255,0.95),
-            0 0 0 1px ${t.accent}66,
-            0 0 80px ${t.accent}40,
-            0 16px 48px ${t.accent}33,
-            0 8px 20px rgba(15,20,34,0.08)
-          `;
+          e.currentTarget.style.boxShadow = hoverShadow;
           e.currentTarget.style.borderLeftColor = t.accent;
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = `
-            inset 0 1px 0 rgba(255,255,255,0.9),
-            0 0 0 1px ${DS.border},
-            0 8px 24px ${t.accent}1f,
-            0 24px 60px ${t.accent}14,
-            0 4px 12px rgba(15,20,34,0.05)
-          `;
+          e.currentTarget.style.boxShadow = restShadow;
           e.currentTarget.style.borderLeftColor = t.accent;
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: featured ? 20 : 14, gap: 12 }}>
+        {/* Header row: hex icon + live stat */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, gap: 12 }}>
           <div
             style={{
-              width: featured ? 56 : 44,
-              height: featured ? 64 : 50,
+              width: 44,
+              height: 50,
               background: t.accent + "14",
               color: t.accent,
               display: "flex",
@@ -4011,10 +4017,10 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
               flexShrink: 0,
             }}
           >
-            <Icon size={featured ? 24 : 20} strokeWidth={1.75} />
+            <Icon size={20} strokeWidth={1.75} />
           </div>
           <div style={{ textAlign: "right" }}>
-            <div className="mono" style={{ fontSize: featured ? 22 : 16, fontWeight: 600, color: DS.ink, lineHeight: 1 }}>
+            <div className="mono" style={{ fontSize: 16, fontWeight: 600, color: DS.ink, lineHeight: 1 }}>
               {t.stat}
             </div>
             <div className="mono" style={{ fontSize: 9, color: DS.inkFaint, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>
@@ -4023,23 +4029,48 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           </div>
         </div>
 
-        <SectionLabel accent={t.accent}>{t.subtitle}</SectionLabel>
-        <h3 className="fr" style={{ fontSize: featured ? 36 : 24, fontWeight: 500, marginTop: 6, marginBottom: 10, letterSpacing: "-0.01em" }}>
+        {/* Step + subtitle = workflow position */}
+        <div className="mono" style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: DS.inkFaint, marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ color: t.accent, fontWeight: 700 }}>{t.step}</span>
+          <span style={{ color: DS.borderStrong }}>·</span>
+          <span style={{ color: t.accent }}>{t.subtitle}</span>
+        </div>
+        <h3 className="fr" style={{ fontSize: 26, fontWeight: 500, marginTop: 4, marginBottom: 10, letterSpacing: "-0.01em" }}>
           {t.title}
         </h3>
-        <p style={{ fontSize: featured ? 15 : 13, color: DS.inkMuted, lineHeight: 1.55, marginBottom: 16, flex: 1 }}>
+        <p style={{ fontSize: 13, color: DS.inkMuted, lineHeight: 1.55, marginBottom: 14 }}>
           {t.body}
         </p>
-        <div className="mono" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: t.accent, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-          Open module
-          <ArrowRight size={12} strokeWidth={2.5} />
+
+        {/* Capability bullets — small hex dot + body text */}
+        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 18px", display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+          {t.bullets.map((b, i) => (
+            <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: DS.inkMuted, lineHeight: 1.45 }}>
+              <span
+                aria-hidden
+                style={{
+                  display: "inline-block",
+                  width: 7,
+                  height: 8,
+                  background: t.accent,
+                  clipPath: HEX_CLIP,
+                  flexShrink: 0,
+                  marginTop: 5,
+                }}
+              />
+              {b}
+            </li>
+          ))}
+        </ul>
+
+        {/* Footer CTA */}
+        <div className="mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: `1px solid ${DS.border}`, fontSize: 11, color: t.accent, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          <span>Open module</span>
+          <ArrowRight size={14} strokeWidth={2.5} />
         </div>
       </button>
     );
   };
-
-  const featured = tiles.find((t) => t.featured);
-  const others = tiles.filter((t) => !t.featured);
 
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -4336,49 +4367,65 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
         </motion.div>
       </motion.section>
 
-      {/* Module tiles — featured + 2x2 grid, viewport-triggered entrance */}
+      {/* Section opener — editorial framing between hero and the rail */}
       <motion.div
-        className="responsive-tiles-grid"
-        style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr)", gap: 16, marginBottom: 56 }}
+        className="responsive-section-opener"
+        style={{ marginBottom: 28, maxWidth: 760 }}
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <SectionLabel>The toolkit · five modules</SectionLabel>
+        <h2
+          className="fr responsive-section-headline"
+          style={{ fontSize: 38, fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.015em", marginTop: 8, marginBottom: 12 }}
+        >
+          From contract to courtroom — <span style={{ fontStyle: "italic", color: DS.redline }}>every decision audited</span>.
+        </h2>
+        <p style={{ fontSize: 15, color: DS.inkMuted, lineHeight: 1.6, maxWidth: 620 }}>
+          One ledger. Five entry points. Pick where you start — every action across modules writes to the same tamper-evident record.
+        </p>
+      </motion.div>
+
+      {/* Module workflow rail — five equal-size cards in sequence.
+          Horizontal scroll-snap on tablet/desktop when the rail overflows;
+          stacks vertically on mobile via responsive CSS. */}
+      <motion.div
+        className="responsive-tiles-grid workflow-rail"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(5, minmax(228px, 1fr))",
+          gap: 14,
+          marginBottom: 56,
+          overflowX: "auto",
+          scrollSnapType: "x mandatory",
+          paddingBottom: 6,
+          // Subtle bleed: cards extend a touch past the content padding so
+          // the right-edge card hints at scrollability when overflowing.
+          marginRight: -16,
+          paddingRight: 16,
+        }}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
         variants={{
           hidden: {},
-          visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+          visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
         }}
       >
-        {featured && (
+        {tiles.map((t) => (
           <motion.div
+            key={t.key}
             variants={{
-              hidden: { opacity: 0, y: 16, scale: 0.985 },
-              visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+              hidden: { opacity: 0, y: 14, scale: 0.985 },
+              visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
             }}
+            style={{ display: "flex" }}
           >
-            <Tile t={featured} featured />
+            <Tile t={t} />
           </motion.div>
-        )}
-        <motion.div
-          className="responsive-tiles-secondary"
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
-          }}
-        >
-          {others.map((t) => (
-            <motion.div
-              key={t.key}
-              variants={{
-                hidden: { opacity: 0, y: 14, scale: 0.985 },
-                visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-              }}
-              style={{ display: "flex" }}
-            >
-              <Tile t={t} />
-            </motion.div>
-          ))}
-        </motion.div>
+        ))}
       </motion.div>
 
       {/* Ledger preview */}
@@ -4633,16 +4680,11 @@ export default function CounselCo() {
           .responsive-nav { gap: 0 !important; }
           .responsive-nav-label { display: none !important; }
           .responsive-nav button { padding: 10px 10px !important; }
-          .responsive-tiles-grid {
-            grid-template-columns: 1fr !important;
-            gap: 14px !important;
+          /* Rail keeps 5 columns but narrows minimum so it scrolls earlier. */
+          .workflow-rail {
+            grid-template-columns: repeat(5, 240px) !important;
           }
-          .responsive-tiles-secondary {
-            grid-template-columns: 1fr 1fr !important;
-            gap: 14px !important;
-          }
-          .responsive-featured-tile { min-height: 220px !important; padding: 24px !important; }
-          .responsive-featured-tile h3 { font-size: 30px !important; }
+          .responsive-section-headline { font-size: 32px !important; }
         }
 
         /* ─── Responsive: phone (≤720px) ──────────────────────────────────
@@ -4669,16 +4711,18 @@ export default function CounselCo() {
           .responsive-stat-numeral { font-size: 22px !important; }
           .responsive-live-chip-wrap { padding: 0 16px !important; top: 16px !important; }
           .responsive-live-chip { font-size: 9px !important; }
-          .responsive-tiles-grid {
-            grid-template-columns: 1fr !important;
+          /* Rail collapses to a vertical stack on phones. */
+          .workflow-rail {
+            display: flex !important;
+            flex-direction: column !important;
             gap: 12px !important;
+            overflow-x: visible !important;
+            margin-right: 0 !important;
+            padding-right: 0 !important;
           }
-          .responsive-tiles-secondary {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-          }
-          .responsive-tile { min-height: 160px !important; padding: 18px !important; }
-          .responsive-featured-tile h3 { font-size: 26px !important; }
+          .responsive-tile { min-height: auto !important; padding: 18px !important; }
+          .responsive-section-headline { font-size: 26px !important; }
+          .responsive-section-opener { margin-bottom: 20px !important; }
         }
 
         /* ─── Responsive: very narrow (≤380px) ─────────────────────────── */
