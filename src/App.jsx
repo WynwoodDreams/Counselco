@@ -3947,34 +3947,53 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
     return (
       <button
         onClick={() => onNavigate(t.key)}
+        className="tile-backlit"
         style={{
           position: "relative",
           textAlign: "left",
           padding: featured ? 32 : 22,
-          background: DS.surface2,
+          background: `linear-gradient(180deg, #FFFFFF 0%, ${DS.surface} 100%)`,
           border: `1px solid ${DS.border}`,
           borderLeft: `4px solid ${t.accent}`,
-          borderRadius: 8,
+          borderRadius: 10,
           cursor: "pointer",
           fontFamily: "inherit",
-          transition: "transform 0.15s, box-shadow 0.15s, border-color 0.15s",
+          transition: "transform 0.25s ease, box-shadow 0.3s ease, border-color 0.2s ease",
           overflow: "hidden",
           minHeight: featured ? 280 : 200,
           display: "flex",
           flexDirection: "column",
           width: "100%",
           flex: 1,
+          // Resting backlit halo — accent-colored ambient glow + soft drop shadow
+          boxShadow: `
+            inset 0 1px 0 rgba(255,255,255,0.9),
+            0 0 0 1px ${DS.border},
+            0 8px 24px ${t.accent}1f,
+            0 24px 60px ${t.accent}14,
+            0 4px 12px rgba(15,20,34,0.05)
+          `,
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = `0 10px 28px ${t.accent}1f`;
-          e.currentTarget.style.borderColor = DS.borderStrong;
+          e.currentTarget.style.transform = "translateY(-3px)";
+          e.currentTarget.style.boxShadow = `
+            inset 0 1px 0 rgba(255,255,255,0.95),
+            0 0 0 1px ${t.accent}66,
+            0 0 80px ${t.accent}40,
+            0 16px 48px ${t.accent}33,
+            0 8px 20px rgba(15,20,34,0.08)
+          `;
           e.currentTarget.style.borderLeftColor = t.accent;
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "none";
-          e.currentTarget.style.borderColor = DS.border;
+          e.currentTarget.style.boxShadow = `
+            inset 0 1px 0 rgba(255,255,255,0.9),
+            0 0 0 1px ${DS.border},
+            0 8px 24px ${t.accent}1f,
+            0 24px 60px ${t.accent}14,
+            0 4px 12px rgba(15,20,34,0.05)
+          `;
           e.currentTarget.style.borderLeftColor = t.accent;
         }}
       >
@@ -4055,7 +4074,16 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
   ];
 
   return (
-    <div>
+    <div style={{ position: "relative", isolation: "isolate" }}>
+      {/* Drifting smoke — atmospheric depth between sections.
+          z-index:-1 + isolation on the parent keeps these visually behind
+          all content while staying inside Home's stacking context. */}
+      <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: -1 }}>
+        <div className="smoke smoke-a" style={{ top: "62vh", right: "-180px" }} />
+        <div className="smoke smoke-b" style={{ top: "92vh", left: "-160px" }} />
+        <div className="smoke smoke-c" style={{ top: "150vh", right: "-220px" }} />
+        <div className="smoke smoke-a" style={{ top: "210vh", left: "-200px", animationDelay: "-12s" }} />
+      </div>
       {/* Hero — full-bleed cinematic intro */}
       <motion.section
         ref={heroRef}
@@ -4419,8 +4447,18 @@ export default function CounselCo() {
         .mono { font-family: 'IBM Plex Mono', monospace; }
         body {
           background-color: ${DS.bg};
-          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='84' height='96' viewBox='0 0 84 96'><g fill='none' stroke='%230F1422' stroke-opacity='0.04' stroke-width='1'><polygon points='42,2 80,24 80,72 42,94 4,72 4,24'/><polygon points='0,48 14,40 14,56'/><polygon points='84,48 70,40 70,56'/></g></svg>");
-          background-size: 168px 192px;
+          background-image:
+            radial-gradient(ellipse 55% 45% at 78% -8%, ${DS.warning}1f 0%, transparent 60%),
+            radial-gradient(ellipse 65% 55% at 12% 38%, ${DS.highlight}33 0%, transparent 65%),
+            radial-gradient(ellipse 75% 65% at 92% 88%, ${DS.vendor}1f 0%, transparent 65%),
+            url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='84' height='96' viewBox='0 0 84 96'><g fill='none' stroke='%230F1422' stroke-opacity='0.04' stroke-width='1'><polygon points='42,2 80,24 80,72 42,94 4,72 4,24'/><polygon points='0,48 14,40 14,56'/><polygon points='84,48 70,40 70,56'/></g></svg>");
+          background-size: 200% 200%, 200% 200%, 200% 200%, 168px 192px;
+          background-attachment: fixed, fixed, fixed, scroll;
+          animation: page-ambient-drift 38s ease-in-out infinite;
+        }
+        @keyframes page-ambient-drift {
+          0%, 100% { background-position: 0% 0%, 0% 0%, 0% 0%, 0 0; }
+          50%      { background-position: 6% 4%, -5% 8%, 4% -5%, 0 0; }
         }
         button:focus-visible, textarea:focus-visible, input:focus-visible {
           outline: 2px solid ${currentAccent};
@@ -4474,6 +4512,50 @@ export default function CounselCo() {
             linear-gradient(135deg, ${DS.surface} 0%, ${DS.bg} 100%);
           background-size: 200% 200%, 200% 200%, 100% 100%;
           animation: hero-pan 28s ease-in-out infinite;
+        }
+
+        /* Drifting smoke clouds — large blurred radial pools that slowly
+           translate, suggesting atmospheric depth as you scroll. */
+        .smoke {
+          position: absolute;
+          pointer-events: none;
+          border-radius: 50%;
+          filter: blur(48px);
+          mix-blend-mode: screen;
+          will-change: transform, opacity;
+        }
+        .smoke-a {
+          width: 720px; height: 480px;
+          background: radial-gradient(ellipse, ${DS.highlight}66 0%, ${DS.highlight}1a 40%, transparent 70%);
+          animation: smoke-a 30s ease-in-out infinite;
+        }
+        .smoke-b {
+          width: 620px; height: 420px;
+          background: radial-gradient(ellipse, ${DS.surface2}d9 0%, ${DS.surface2}40 40%, transparent 70%);
+          animation: smoke-b 36s ease-in-out infinite;
+        }
+        .smoke-c {
+          width: 800px; height: 520px;
+          background: radial-gradient(ellipse, ${DS.vendor}40 0%, ${DS.vendor}14 40%, transparent 70%);
+          animation: smoke-c 42s ease-in-out infinite;
+        }
+        @keyframes smoke-a {
+          0%, 100% { transform: translate(0, 0) scale(1);     opacity: 0.55; }
+          50%      { transform: translate(90px, -34px) scale(1.08); opacity: 0.85; }
+        }
+        @keyframes smoke-b {
+          0%, 100% { transform: translate(0, 0) scale(1);     opacity: 0.5; }
+          50%      { transform: translate(-80px, 44px) scale(1.1);  opacity: 0.78; }
+        }
+        @keyframes smoke-c {
+          0%, 100% { transform: translate(0, 0) scale(1);     opacity: 0.45; }
+          50%      { transform: translate(60px, 40px) scale(1.06);  opacity: 0.7; }
+        }
+
+        /* Backlit card glow — strong accent-colored halo at rest, brighter on
+           hover. Top-edge highlight suggests light coming from above. */
+        .tile-backlit {
+          background-image: linear-gradient(180deg, #FFFFFF 0%, ${DS.surface} 100%);
         }
       `}</style>
 
