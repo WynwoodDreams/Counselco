@@ -61,8 +61,9 @@ const DS = {
 };
 
 // Empty string = CSS ambient fallback (animated gradient + hex texture + noise).
-// Drop in a Cloudinary delivery URL — e.g. https://res.cloudinary.com/dsu7dcqu0/video/upload/<public-id>.mp4 — to enable.
-const HERO_VIDEO_URL = "";
+// If the URL fails to load (e.g. Cloudinary access restrictions), the hero
+// silently falls back to the CSS ambient via onError.
+const HERO_VIDEO_URL = "https://res.cloudinary.com/dsu7dcqu0/video/upload/v1777923157/shootingstar_hz4jag.mp4";
 
 const MODULES = {
   home: { label: "Home", accent: DS.ink, icon: CircleDot },
@@ -3883,6 +3884,7 @@ function summarizePayload(e) {
 function Home({ events, onNavigate, savedPolicies, savedVendors }) {
   const counts = events.reduce((a, e) => ({ ...a, [e.module]: (a[e.module] || 0) + 1 }), {});
   const recent = events.slice(-3).reverse();
+  const [videoFailed, setVideoFailed] = useState(false);
 
   const tiles = [
     {
@@ -4076,13 +4078,15 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             border: `1px solid ${DS.border}`,
           }}
         >
-          {HERO_VIDEO_URL ? (
+          {HERO_VIDEO_URL && !videoFailed ? (
             <video
               autoPlay
               muted
               loop
               playsInline
-              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.55 }}
+              preload="auto"
+              onError={() => setVideoFailed(true)}
+              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.6 }}
               src={HERO_VIDEO_URL}
             />
           ) : (
