@@ -3855,8 +3855,10 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
       subtitle: "Contract review with audit",
       body: "Paste a contract. AI surfaces risks and suggests redlines. Every accept, edit, reject is logged.",
       accent: DS.redline,
+      icon: MODULES.redline.icon,
       stat: counts.redline || 0,
       statLabel: "decisions",
+      featured: true,
     },
     {
       key: "policy",
@@ -3864,6 +3866,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
       subtitle: "AI use policy generator",
       body: "Parameterize by firm size, practice mix, jurisdiction, risk tolerance. Edit sections inline; every change snapshots.",
       accent: DS.policy,
+      icon: MODULES.policy.icon,
       stat: savedPolicies.length,
       statLabel: "saved",
     },
@@ -3871,8 +3874,9 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
       key: "vendor",
       title: "Vendor",
       subtitle: "AI vendor TOS diligence",
-      body: "Score vendor terms by category. Cite clauses. Approve, negotiate, or block — with the rationale captured.",
+      body: "Score vendor terms by category. Cite clauses. Approve, negotiate, or block — rationale captured.",
       accent: DS.vendor,
+      icon: MODULES.vendor.icon,
       stat: savedVendors.length,
       statLabel: "assessed",
     },
@@ -3880,8 +3884,9 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
       key: "research",
       title: "Research",
       subtitle: "Arbitration corpus search",
-      body: "Natural-language query over arbitration awards. BM25 retrieval, LLM synthesis, calibrated confidence — no bluffing when the corpus is thin.",
+      body: "Natural-language query over arbitration awards. BM25 retrieval, calibrated confidence — no bluffing when the corpus is thin.",
       accent: DS.research,
+      icon: MODULES.research.icon,
       stat: counts.research || 0,
       statLabel: "queries",
     },
@@ -3889,67 +3894,130 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
       key: "verify",
       title: "Verify",
       subtitle: "Citation validation",
-      body: "Paste AI-generated text. Validates every citation against the corpus. Flags fabrication AND distorted holdings — cases cited but materially misstated.",
+      body: "Validates every citation against the corpus. Flags fabrication AND distorted holdings — cases cited but materially misstated.",
       accent: DS.verify,
+      icon: MODULES.verify.icon,
       stat: counts.verify || 0,
       statLabel: "verifications",
     },
   ];
 
+  const HEX_CLIP = "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)";
+
+  const Tile = ({ t, featured }) => {
+    const Icon = t.icon;
+    return (
+      <button
+        onClick={() => onNavigate(t.key)}
+        style={{
+          position: "relative",
+          textAlign: "left",
+          padding: featured ? 32 : 22,
+          background: DS.surface2,
+          border: `1px solid ${DS.border}`,
+          borderLeft: `4px solid ${t.accent}`,
+          borderRadius: 8,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          transition: "transform 0.15s, box-shadow 0.15s, border-color 0.15s",
+          overflow: "hidden",
+          minHeight: featured ? 280 : 200,
+          display: "flex",
+          flexDirection: "column",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.boxShadow = `0 10px 28px ${t.accent}1f`;
+          e.currentTarget.style.borderColor = DS.borderStrong;
+          e.currentTarget.style.borderLeftColor = t.accent;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.borderColor = DS.border;
+          e.currentTarget.style.borderLeftColor = t.accent;
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: featured ? 20 : 14, gap: 12 }}>
+          <div
+            style={{
+              width: featured ? 56 : 44,
+              height: featured ? 64 : 50,
+              background: t.accent + "14",
+              color: t.accent,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              clipPath: HEX_CLIP,
+              flexShrink: 0,
+            }}
+          >
+            <Icon size={featured ? 24 : 20} strokeWidth={1.75} />
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div className="mono" style={{ fontSize: featured ? 22 : 16, fontWeight: 600, color: DS.ink, lineHeight: 1 }}>
+              {t.stat}
+            </div>
+            <div className="mono" style={{ fontSize: 9, color: DS.inkFaint, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>
+              {t.statLabel}
+            </div>
+          </div>
+        </div>
+
+        <SectionLabel accent={t.accent}>{t.subtitle}</SectionLabel>
+        <h3 className="fr" style={{ fontSize: featured ? 36 : 24, fontWeight: 500, marginTop: 6, marginBottom: 10, letterSpacing: "-0.01em" }}>
+          {t.title}
+        </h3>
+        <p style={{ fontSize: featured ? 15 : 13, color: DS.inkMuted, lineHeight: 1.55, marginBottom: 16, flex: 1 }}>
+          {t.body}
+        </p>
+        <div className="mono" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: t.accent, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          Open module
+          <ArrowRight size={12} strokeWidth={2.5} />
+        </div>
+      </button>
+    );
+  };
+
+  const featured = tiles.find((t) => t.featured);
+  const others = tiles.filter((t) => !t.featured);
+
   return (
     <div>
-      <div style={{ marginBottom: 48, maxWidth: 720 }}>
-        <SectionLabel>Counsel·Co</SectionLabel>
-        <h1 className="fr" style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginBottom: 20, letterSpacing: "-0.02em" }}>
-          AI you can <span style={{ fontStyle: "italic", color: DS.redline }}>defend</span> in front of
-          the partners.
-        </h1>
-        <p style={{ fontSize: 17, color: DS.inkMuted, lineHeight: 1.55, maxWidth: 600 }}>
-          A governance toolkit for law firms using AI. Five modules — contract review, policy
-          drafting, vendor diligence, arbitration research, citation verification — sharing one
-          tamper-evident audit ledger. Every AI suggestion is reviewable, every human decision is
-          recorded.
-        </p>
+      {/* Hero — split: editorial headline left, system stats right */}
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 48, alignItems: "end", marginBottom: 56, paddingBottom: 32, borderBottom: `1px solid ${DS.border}` }}>
+        <div>
+          <SectionLabel>Counsel·Co</SectionLabel>
+          <h1 className="fr" style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginTop: 8, marginBottom: 20, letterSpacing: "-0.02em" }}>
+            AI you can <span style={{ fontStyle: "italic", color: DS.redline }}>defend</span> in front of the partners.
+          </h1>
+          <p style={{ fontSize: 16, color: DS.inkMuted, lineHeight: 1.6, maxWidth: 560 }}>
+            A governance toolkit for law firms using AI. Five modules sharing one tamper-evident audit ledger. Every suggestion reviewable, every decision recorded.
+          </p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          {[
+            { v: "5", l: "modules" },
+            { v: "1", l: "ledger" },
+            { v: events.length, l: events.length === 1 ? "decision logged" : "decisions logged" },
+            { v: savedPolicies.length + savedVendors.length, l: "artifacts saved" },
+          ].map((s, i) => (
+            <div key={i} style={{ padding: "14px 16px", background: DS.surface, border: `1px solid ${DS.border}`, borderRadius: 6 }}>
+              <div className="fr" style={{ fontSize: 28, fontWeight: 500, lineHeight: 1, color: DS.ink }}>{s.v}</div>
+              <div className="mono" style={{ fontSize: 10, color: DS.inkFaint, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 6 }}>{s.l}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Module tiles */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4" style={{ marginBottom: 48 }}>
-        {tiles.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => onNavigate(t.key)}
-            style={{
-              textAlign: "left",
-              padding: 22,
-              background: DS.surface,
-              border: `1px solid ${DS.borderStrong}`,
-              borderTop: `3px solid ${t.accent}`,
-              borderRadius: 2,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              transition: "transform 0.15s, box-shadow 0.15s",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(28,25,23,0.06)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
-              <SectionLabel accent={t.accent}>{t.subtitle}</SectionLabel>
-              <span className="mono" style={{ fontSize: 11, color: DS.inkFaint }}>
-                {t.stat} {t.statLabel}
-              </span>
-            </div>
-            <h3 className="fr" style={{ fontSize: 24, fontWeight: 500, marginBottom: 8 }}>
-              {t.title}
-            </h3>
-            <p style={{ fontSize: 13, color: DS.inkMuted, lineHeight: 1.55, marginBottom: 16 }}>
-              {t.body}
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: t.accent, fontWeight: 600 }}>
-              Open module
-              <ArrowRight size={12} strokeWidth={2.5} />
-            </div>
-          </button>
-        ))}
+      {/* Module tiles — featured + 2x2 grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr)", gap: 16, marginBottom: 56 }}>
+        {featured && <Tile t={featured} featured />}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          {others.map((t) => (
+            <Tile key={t.key} t={t} />
+          ))}
+        </div>
       </div>
 
       {/* Ledger preview */}
@@ -3957,7 +4025,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
           <div>
             <SectionLabel>Audit ledger · live</SectionLabel>
-            <h2 className="fr" style={{ fontSize: 24, fontWeight: 500 }}>
+            <h2 className="fr" style={{ fontSize: 24, fontWeight: 500, marginTop: 6 }}>
               {events.length === 0
                 ? "Empty. Start in any module."
                 : `${events.length} ${events.length === 1 ? "decision" : "decisions"} on record`}
@@ -3969,13 +4037,34 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
         </div>
 
         {events.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
             {recent.map((e, i) => {
               const m = MODULES[e.module] || MODULES.home;
               return (
-                <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 0", borderTop: i === 0 ? `1px solid ${DS.border}` : "none", borderBottom: `1px solid ${DS.border}` }}>
-                  <Pill color={m.accent}>{m.label}</Pill>
-                  <div style={{ flex: 1, fontSize: 13 }}>{humanizeAction(e.action)}</div>
+                <div
+                  key={e.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: "14px 4px",
+                    borderTop: i === 0 ? `1px solid ${DS.border}` : "none",
+                    borderBottom: `1px solid ${DS.border}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 10,
+                      height: 12,
+                      background: m.accent,
+                      clipPath: HEX_CLIP,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div className="mono" style={{ fontSize: 10, color: DS.inkFaint, letterSpacing: "0.1em", textTransform: "uppercase", minWidth: 80 }}>
+                    {m.label}
+                  </div>
+                  <div style={{ flex: 1, fontSize: 13, color: DS.ink }}>{humanizeAction(e.action)}</div>
                   <div className="mono" style={{ fontSize: 11, color: DS.inkFaint }}>
                     {new Date(e.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </div>
@@ -4096,15 +4185,36 @@ export default function CounselCo() {
             onClick={() => setRoute("home")}
             style={{ display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}
           >
-            <div style={{ width: 32, height: 32, background: DS.ink, color: DS.bg, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 2 }}>
+            <div
+              style={{
+                width: 34,
+                height: 38,
+                background: DS.ink,
+                color: DS.bg,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)",
+              }}
+            >
               <Scale size={16} strokeWidth={1.75} />
             </div>
             <div style={{ textAlign: "left" }}>
-              <div className="fr" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1 }}>
-                Counsel<span style={{ color: currentAccent }}>·</span>Co
+              <div
+                className="mono"
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  lineHeight: 1,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: DS.ink,
+                }}
+              >
+                COUNSEL<span style={{ color: currentAccent }}>·</span>CO
               </div>
-              <div className="mono" style={{ fontSize: 9, color: DS.inkFaint, marginTop: 2, letterSpacing: "0.1em" }}>
-                AI GOVERNANCE FOR LAW FIRMS
+              <div className="mono" style={{ fontSize: 9, color: DS.inkFaint, marginTop: 4, letterSpacing: "0.14em" }}>
+                AI GOVERNANCE · LAW FIRMS
               </div>
             </div>
           </button>
