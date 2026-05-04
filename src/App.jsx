@@ -4098,7 +4098,10 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           marginBottom: 64,
           minHeight: "78vh",
           display: "flex",
-          alignItems: "flex-end",
+          // Headline used to sit pinned to the bottom — leaves a dead zone in
+          // the upper third. Center vertically so the chip can live up top
+          // and the SCROLL affordance has its own room down below.
+          alignItems: "center",
           opacity: heroOpacity,
           willChange: "opacity",
           overflow: "hidden",
@@ -4159,6 +4162,63 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           />
         </div>
 
+        {/* Live status chip — anchored to the upper-left of the hero,
+            mirrors the content's max-width gutter so it aligns with the
+            headline's left edge. Sits outside the parallaxed content so it
+            stays pinned in the upper-left as you scroll. */}
+        <div
+          style={{
+            position: "absolute",
+            top: 28,
+            left: 0,
+            right: 0,
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        >
+          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px" }}>
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "8px 14px",
+                background: `${DS.surface2}f0`,
+                backdropFilter: "blur(10px)",
+                border: `1px solid ${DS.border}`,
+                borderRadius: 999,
+                pointerEvents: "auto",
+                boxShadow: `0 4px 16px ${DS.ink}14`,
+              }}
+            >
+              <motion.span
+                aria-hidden
+                animate={{ opacity: [1, 0.35, 1], scale: [1, 0.85, 1] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                style={{
+                  width: 8,
+                  height: 8,
+                  background: DS.success,
+                  borderRadius: "50%",
+                  boxShadow: `0 0 0 2px ${DS.success}33, 0 0 10px ${DS.success}80`,
+                }}
+              />
+              <span
+                className="mono"
+                style={{ fontSize: 10, letterSpacing: "0.16em", color: DS.ink, fontWeight: 600, textTransform: "uppercase" }}
+              >
+                Live · Audit Ledger ·{" "}
+                {events.length === 0
+                  ? "monitoring 5 modules"
+                  : `${events.length} ${events.length === 1 ? "decision" : "decisions"} logged`}
+              </span>
+            </motion.div>
+          </div>
+        </div>
+
         {/* Inner content — re-constrained to page max-width.
             Tailwind classes are present in this codebase but no Tailwind is
             configured, so the maxWidth + auto margins are set inline. */}
@@ -4169,7 +4229,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             width: "100%",
             maxWidth: 1280,
             margin: "0 auto",
-            padding: "0 32px 64px",
+            padding: "0 32px",
             y: contentY,
             willChange: "transform",
           }}
