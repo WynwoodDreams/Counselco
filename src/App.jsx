@@ -4029,7 +4029,11 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
   });
   // Dim only to 0.5 — readability priority. Slight upward parallax.
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.5]);
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, -24]);
+  // Content moves up faster than the video — classic parallax separation.
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  // Video lingers slightly + slow zoom for a "diving in" feel.
+  const videoY = useTransform(scrollYProgress, [0, 1], [0, 40]);
+  const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
 
   const headlineWords = [
     { t: "AI" },
@@ -4068,8 +4072,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           display: "flex",
           alignItems: "flex-end",
           opacity: heroOpacity,
-          y: heroY,
-          willChange: "opacity, transform",
+          willChange: "opacity",
           overflow: "hidden",
         }}
       >
@@ -4082,20 +4085,31 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             zIndex: 0,
           }}
         >
-          {HERO_VIDEO_URL && !videoFailed ? (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              onError={() => setVideoFailed(true)}
-              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 1 }}
-              src={HERO_VIDEO_URL}
-            />
-          ) : (
-            <div className="hero-ambient" style={{ width: "100%", height: "100%" }} />
-          )}
+          <motion.div
+            style={{
+              width: "100%",
+              height: "100%",
+              y: videoY,
+              scale: videoScale,
+              willChange: "transform",
+              transformOrigin: "center center",
+            }}
+          >
+            {HERO_VIDEO_URL && !videoFailed ? (
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                onError={() => setVideoFailed(true)}
+                style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 1 }}
+                src={HERO_VIDEO_URL}
+              />
+            ) : (
+              <div className="hero-ambient" style={{ width: "100%", height: "100%" }} />
+            )}
+          </motion.div>
           {/* Directional wash: heavy cream on the left (headline backdrop),
               fading to transparent on the right (video breathes through). */}
           <div
@@ -4117,9 +4131,22 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           />
         </div>
 
-        {/* Inner content — re-constrained to page max-width */}
-        <div className="max-w-7xl mx-auto px-6" style={{ position: "relative", zIndex: 1, width: "100%", padding: "0 24px 56px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 48, alignItems: "end" }}>
+        {/* Inner content — re-constrained to page max-width.
+            Tailwind classes are present in this codebase but no Tailwind is
+            configured, so the maxWidth + auto margins are set inline. */}
+        <motion.div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            width: "100%",
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px 64px",
+            y: contentY,
+            willChange: "transform",
+          }}
+        >
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 32, alignItems: "end" }}>
           <div>
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
               <SectionLabel>Counsel·Co</SectionLabel>
@@ -4185,7 +4212,9 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             ))}
           </motion.div>
         </div>
-        {/* Scroll affordance */}
+        </motion.div>
+        {/* Scroll affordance — pinned to viewport-center bottom of the hero,
+            outside the parallaxed content so it doesn't drift on scroll. */}
         <motion.div
           aria-hidden
           initial={{ opacity: 0 }}
@@ -4193,25 +4222,25 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           transition={{ duration: 0.6, delay: 1.6 }}
           style={{
             position: "absolute",
-            bottom: 18,
+            bottom: 22,
             left: "50%",
             transform: "translateX(-50%)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 6,
+            gap: 8,
+            zIndex: 2,
           }}
         >
-          <span className="mono" style={{ fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: DS.inkFaint }}>
+          <span className="mono" style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: DS.inkFaint }}>
             Scroll
           </span>
           <motion.span
             animate={{ y: [0, 5, 0] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            style={{ width: 1, height: 18, background: DS.inkFaint }}
+            style={{ width: 1, height: 22, background: DS.inkFaint }}
           />
         </motion.div>
-        </div>
       </motion.section>
 
       {/* Module tiles — featured + 2x2 grid, viewport-triggered entrance */}
