@@ -4672,6 +4672,50 @@ export default function CounselCo() {
           background-image: linear-gradient(180deg, #FFFFFF 0%, ${DS.surface} 100%);
         }
 
+        /* ─── Module pages ────────────────────────────────────────────────
+           When inside a module route, the <main> element gains:
+           1. A fixed-position ambient pool tinted with --module-accent,
+              persisting through scroll like the body lighting on Home
+           2. A subtle perimeter glow on the content panel itself, so the
+              entire workspace reads as a backlit surface (carries the
+              card-halo language from Home into every module without
+              having to edit each module's per-card styles)
+           Default --module-accent falls back to ink so non-module pages
+           stay neutral. */
+        .module-page {
+          position: relative;
+          isolation: isolate;
+          --module-accent: ${DS.ink};
+        }
+        .module-page::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: -1;
+          background:
+            radial-gradient(ellipse 55% 45% at 82% -6%, color-mix(in srgb, var(--module-accent) 24%, transparent) 0%, transparent 60%),
+            radial-gradient(ellipse 65% 55% at 12% 30%, color-mix(in srgb, var(--module-accent) 14%, transparent) 0%, transparent 65%),
+            radial-gradient(ellipse 75% 60% at 90% 88%, color-mix(in srgb, var(--module-accent) 18%, transparent) 0%, transparent 65%);
+          background-size: 200% 200%, 200% 200%, 200% 200%;
+          animation: page-ambient-drift 38s ease-in-out infinite;
+        }
+        .module-page::after {
+          content: "";
+          position: absolute;
+          inset: 8px;
+          pointer-events: none;
+          z-index: -1;
+          border-radius: 14px;
+          /* Soft accent-tinted panel halo — frames the workspace without
+             touching individual cards inside it. */
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.4),
+            0 0 0 1px color-mix(in srgb, var(--module-accent) 12%, transparent),
+            0 30px 80px color-mix(in srgb, var(--module-accent) 14%, transparent),
+            0 8px 24px color-mix(in srgb, var(--module-accent) 10%, transparent);
+        }
+
         /* ─── Responsive: tablet (≤1024px) ─────────────────────────────────
            Featured-plus-2x2 tile grid collapses to a 2-up grid; nav labels
            hide so 6 module icons fit in the header beside the wordmark. */
@@ -4827,7 +4871,18 @@ export default function CounselCo() {
       </header>
 
       {/* Main */}
-      <main className="max-w-7xl mx-auto px-6 responsive-main" style={{ padding: "40px 24px 80px", maxWidth: 1280, margin: "0 auto" }}>
+      <main
+        className={`max-w-7xl mx-auto px-6 responsive-main${route !== "home" ? " module-page" : ""}`}
+        style={{
+          padding: "40px 24px 80px",
+          maxWidth: 1280,
+          margin: "0 auto",
+          // CSS var consumed by .module-page::before / box-shadow rules so each
+          // module page gets a tint in its own accent color without any per-
+          // module render edits.
+          ["--module-accent"]: currentAccent,
+        }}
+      >
         {!hydrated ? (
           <Loader label="Loading workspace" />
         ) : route === "home" ? (
