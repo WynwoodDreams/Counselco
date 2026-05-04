@@ -4086,18 +4086,29 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
               playsInline
               preload="auto"
               onError={() => setVideoFailed(true)}
-              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.6 }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 1 }}
               src={HERO_VIDEO_URL}
             />
           ) : (
             <div className="hero-ambient" style={{ width: "100%", height: "100%" }} />
           )}
-          {/* Cream/navy wash so text always wins */}
+          {/* Directional wash: heavy cream on the left where the headline sits,
+              fading to transparent on the right so the video stays visible
+              behind the stat cards. */}
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: `linear-gradient(120deg, ${DS.bg}f2 0%, ${DS.bg}cc 55%, ${DS.surface}d9 100%)`,
+              background: `linear-gradient(95deg, ${DS.bg}f2 0%, ${DS.bg}d9 32%, ${DS.bg}80 60%, ${DS.bg}26 100%)`,
+            }}
+          />
+          {/* Soft top/bottom vignette so edges feel grounded without nuking the video. */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(180deg, ${DS.bg}33 0%, transparent 25%, transparent 75%, ${DS.bg}66 100%)`,
+              pointerEvents: "none",
             }}
           />
         </div>
@@ -4109,7 +4120,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             </motion.div>
             <motion.h1
               className="fr"
-              style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginTop: 8, marginBottom: 20, letterSpacing: "-0.02em" }}
+              style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginTop: 8, marginBottom: 20, letterSpacing: "-0.02em", textShadow: `0 1px 0 ${DS.bg}, 0 0 12px ${DS.bg}80` }}
               initial="hidden"
               animate="visible"
               variants={{
@@ -4156,7 +4167,7 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
             {heroStats.map((s, i) => (
               <motion.div
                 key={i}
-                style={{ padding: "14px 16px", background: `${DS.surface2}d9`, backdropFilter: "blur(4px)", border: `1px solid ${DS.border}`, borderRadius: 6 }}
+                style={{ padding: "14px 16px", background: `${DS.surface2}f0`, backdropFilter: "blur(8px)", border: `1px solid ${DS.border}`, borderRadius: 6 }}
                 variants={{
                   hidden: { opacity: 0, y: 12 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
