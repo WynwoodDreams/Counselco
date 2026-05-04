@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import {
   Scale,
   FileText,
@@ -58,6 +59,11 @@ const DS = {
   danger: "#991b1b",
   info: "#1e40af",
 };
+
+// Empty string = CSS ambient fallback (animated gradient + hex texture + noise).
+// If the URL fails to load (e.g. Cloudinary access restrictions), the hero
+// silently falls back to the CSS ambient via onError.
+const HERO_VIDEO_URL = "https://res.cloudinary.com/dsu7dcqu0/video/upload/v1777923157/shootingstar_hz4jag.mp4";
 
 const MODULES = {
   home: { label: "Home", accent: DS.ink, icon: CircleDot },
@@ -925,6 +931,37 @@ const VERIFY_SAMPLES = [
 /* ─────────────────────────────────────────────────────────────────────────
    SHARED PRIMITIVES
    ───────────────────────────────────────────────────────────────────────── */
+
+// Word-by-word pull-up reveal for editorial headlines.
+function WordPullUp({ children, className, style, delayChildren = 0.1, stagger = 0.06 }) {
+  const text = typeof children === "string" ? children : "";
+  const parts = text.split(" ");
+  return (
+    <motion.span
+      className={className}
+      style={{ display: "inline-block", ...style }}
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: { transition: { delayChildren, staggerChildren: stagger } },
+      }}
+    >
+      {parts.map((word, i) => (
+        <motion.span
+          key={i}
+          variants={{
+            hidden: { y: "0.5em", opacity: 0 },
+            visible: { y: 0, opacity: 1, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+          }}
+          style={{ display: "inline-block", marginRight: i === parts.length - 1 ? 0 : "0.28em" }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </motion.span>
+  );
+}
 
 function Btn({ children, variant = "primary", icon: Icon, accent, ...rest }) {
   const styles = {
@@ -3847,6 +3884,7 @@ function summarizePayload(e) {
 function Home({ events, onNavigate, savedPolicies, savedVendors }) {
   const counts = events.reduce((a, e) => ({ ...a, [e.module]: (a[e.module] || 0) + 1 }), {});
   const recent = events.slice(-3).reverse();
+  const [videoFailed, setVideoFailed] = useState(false);
 
   const tiles = [
     {
@@ -3924,6 +3962,8 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
           minHeight: featured ? 280 : 200,
           display: "flex",
           flexDirection: "column",
+          width: "100%",
+          flex: 1,
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "translateY(-2px)";
@@ -3982,43 +4022,196 @@ function Home({ events, onNavigate, savedPolicies, savedVendors }) {
   const featured = tiles.find((t) => t.featured);
   const others = tiles.filter((t) => !t.featured);
 
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  // Dim only to 0.5 — readability priority. Slight upward parallax.
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.5]);
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -24]);
+
+  const headlineWords = [
+    { t: "AI" },
+    { t: "you" },
+    { t: "can" },
+    { t: "defend", italic: true, color: DS.redline },
+    { t: "in" },
+    { t: "front" },
+    { t: "of" },
+    { t: "the" },
+    { t: "partners." },
+  ];
+
+  const heroStats = [
+    { v: "5", l: "modules" },
+    { v: "1", l: "ledger" },
+    { v: events.length, l: events.length === 1 ? "decision logged" : "decisions logged" },
+    { v: savedPolicies.length + savedVendors.length, l: "artifacts saved" },
+  ];
+
   return (
     <div>
-      {/* Hero — split: editorial headline left, system stats right */}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 48, alignItems: "end", marginBottom: 56, paddingBottom: 32, borderBottom: `1px solid ${DS.border}` }}>
-        <div>
-          <SectionLabel>Counsel·Co</SectionLabel>
-          <h1 className="fr" style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginTop: 8, marginBottom: 20, letterSpacing: "-0.02em" }}>
-            AI you can <span style={{ fontStyle: "italic", color: DS.redline }}>defend</span> in front of the partners.
-          </h1>
-          <p style={{ fontSize: 16, color: DS.inkMuted, lineHeight: 1.6, maxWidth: 560 }}>
-            A governance toolkit for law firms using AI. Five modules sharing one tamper-evident audit ledger. Every suggestion reviewable, every decision recorded.
-          </p>
+      {/* Hero — ambient backdrop + editorial headline left, system stats right */}
+      <motion.section
+        ref={heroRef}
+        className="noise-overlay"
+        style={{
+          position: "relative",
+          marginBottom: 56,
+          paddingBottom: 40,
+          borderBottom: `1px solid ${DS.border}`,
+          opacity: heroOpacity,
+          y: heroY,
+          willChange: "opacity, transform",
+        }}
+      >
+        {/* Ambient backdrop: video if URL present, else CSS gradient mesh */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: "-24px -32px",
+            zIndex: -1,
+            borderRadius: 16,
+            overflow: "hidden",
+            border: `1px solid ${DS.border}`,
+          }}
+        >
+          {HERO_VIDEO_URL && !videoFailed ? (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              onError={() => setVideoFailed(true)}
+              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.6 }}
+              src={HERO_VIDEO_URL}
+            />
+          ) : (
+            <div className="hero-ambient" style={{ width: "100%", height: "100%" }} />
+          )}
+          {/* Cream/navy wash so text always wins */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(120deg, ${DS.bg}f2 0%, ${DS.bg}cc 55%, ${DS.surface}d9 100%)`,
+            }}
+          />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          {[
-            { v: "5", l: "modules" },
-            { v: "1", l: "ledger" },
-            { v: events.length, l: events.length === 1 ? "decision logged" : "decisions logged" },
-            { v: savedPolicies.length + savedVendors.length, l: "artifacts saved" },
-          ].map((s, i) => (
-            <div key={i} style={{ padding: "14px 16px", background: DS.surface, border: `1px solid ${DS.border}`, borderRadius: 6 }}>
-              <div className="fr" style={{ fontSize: 28, fontWeight: 500, lineHeight: 1, color: DS.ink }}>{s.v}</div>
-              <div className="mono" style={{ fontSize: 10, color: DS.inkFaint, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 6 }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Module tiles — featured + 2x2 grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr)", gap: 16, marginBottom: 56 }}>
-        {featured && <Tile t={featured} featured />}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          {others.map((t) => (
-            <Tile key={t.key} t={t} />
-          ))}
+        <div style={{ position: "relative", display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 48, alignItems: "end", padding: "8px 0" }}>
+          <div>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+              <SectionLabel>Counsel·Co</SectionLabel>
+            </motion.div>
+            <motion.h1
+              className="fr"
+              style={{ fontSize: 56, fontWeight: 500, lineHeight: 1.02, marginTop: 8, marginBottom: 20, letterSpacing: "-0.02em" }}
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: { transition: { delayChildren: 0.18, staggerChildren: 0.07 } },
+              }}
+            >
+              {headlineWords.map((w, i) => (
+                <motion.span
+                  key={i}
+                  style={{
+                    display: "inline-block",
+                    marginRight: i === headlineWords.length - 1 ? 0 : "0.28em",
+                    fontStyle: w.italic ? "italic" : "normal",
+                    color: w.color || "inherit",
+                  }}
+                  variants={{
+                    hidden: { y: "0.55em", opacity: 0 },
+                    visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+                  }}
+                >
+                  {w.t}
+                </motion.span>
+              ))}
+            </motion.h1>
+            <motion.p
+              style={{ fontSize: 16, color: DS.inkMuted, lineHeight: 1.6, maxWidth: 560 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.85, ease: "easeOut" }}
+            >
+              A governance toolkit for law firms using AI. Five modules sharing one tamper-evident audit ledger. Every suggestion reviewable, every decision recorded.
+            </motion.p>
+          </div>
+          <motion.div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { delayChildren: 0.55, staggerChildren: 0.08 } },
+            }}
+          >
+            {heroStats.map((s, i) => (
+              <motion.div
+                key={i}
+                style={{ padding: "14px 16px", background: `${DS.surface2}d9`, backdropFilter: "blur(4px)", border: `1px solid ${DS.border}`, borderRadius: 6 }}
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+                }}
+              >
+                <div className="fr" style={{ fontSize: 28, fontWeight: 500, lineHeight: 1, color: DS.ink }}>{s.v}</div>
+                <div className="mono" style={{ fontSize: 10, color: DS.inkFaint, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 6 }}>{s.l}</div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
-      </div>
+      </motion.section>
+
+      {/* Module tiles — featured + 2x2 grid, viewport-triggered entrance */}
+      <motion.div
+        style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr)", gap: 16, marginBottom: 56 }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+        }}
+      >
+        {featured && (
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 16, scale: 0.985 },
+              visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+            }}
+          >
+            <Tile t={featured} featured />
+          </motion.div>
+        )}
+        <motion.div
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+          }}
+        >
+          {others.map((t) => (
+            <motion.div
+              key={t.key}
+              variants={{
+                hidden: { opacity: 0, y: 14, scale: 0.985 },
+                visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+              }}
+              style={{ display: "flex" }}
+            >
+              <Tile t={t} />
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
 
       {/* Ledger preview */}
       <div style={{ borderTop: `1px solid ${DS.border}`, paddingTop: 32 }}>
@@ -4139,6 +4332,7 @@ export default function CounselCo() {
 
   return (
     <div
+      className="bg-noise"
       style={{
         minHeight: "100vh",
         background: DS.bg,
@@ -4167,6 +4361,47 @@ export default function CounselCo() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin { animation: spin 1s linear infinite; }
+
+        /* Tactile noise grain — pairs with the hex bg pattern for a felt-panel feel. */
+        .noise-overlay {
+          position: relative;
+          isolation: isolate;
+        }
+        .noise-overlay::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          opacity: 0.035;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+          mix-blend-mode: multiply;
+        }
+        .bg-noise::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 1;
+          opacity: 0.025;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+          mix-blend-mode: multiply;
+        }
+
+        /* Slow-pan ambient gradient for the hero — used when no video URL is set. */
+        @keyframes hero-pan {
+          0%   { background-position: 0% 50%, 0% 50%, 50% 50%; }
+          50%  { background-position: 100% 50%, 100% 50%, 50% 50%; }
+          100% { background-position: 0% 50%, 0% 50%, 50% 50%; }
+        }
+        .hero-ambient {
+          background:
+            radial-gradient(ellipse 60% 80% at 20% 30%, ${DS.highlight}55 0%, transparent 60%),
+            radial-gradient(ellipse 70% 60% at 80% 70%, ${DS.vendor}30 0%, transparent 65%),
+            linear-gradient(135deg, ${DS.surface} 0%, ${DS.bg} 100%);
+          background-size: 200% 200%, 200% 200%, 100% 100%;
+          animation: hero-pan 28s ease-in-out infinite;
+        }
       `}</style>
 
       {/* Header */}
